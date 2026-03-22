@@ -1,6 +1,9 @@
 # ── Build stage ─────────────────────────────────────────────────────────────
 FROM golang:1.24-alpine AS builder
 
+ARG TARGETOS=linux
+ARG TARGETARCH=amd64
+
 WORKDIR /build
 
 # Cache dependency downloads separately from source changes.
@@ -9,7 +12,7 @@ RUN go mod download
 
 # Copy source and build a statically linked binary.
 COPY . .
-RUN CGO_ENABLED=0 GOOS=linux GOARCH=amd64 \
+RUN CGO_ENABLED=0 GOOS=${TARGETOS} GOARCH=${TARGETARCH} \
     go build -trimpath -ldflags="-s -w" \
     -o /enedis-linky-mcp-server ./cmd/server
 

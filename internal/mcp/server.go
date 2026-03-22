@@ -1,3 +1,4 @@
+// Package mcp implements the MCP server lifecycle and tool registration.
 package mcp
 
 import (

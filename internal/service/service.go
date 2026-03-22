@@ -1,3 +1,4 @@
+// Package service orchestrates Conso API calls and applies business logic.
 package service
 
 import (
@@ -30,7 +31,7 @@ type DailyConsumptionResult struct {
 	EndDate         string                   `json:"end_date"`
 	Unit            string                   `json:"unit"`
 	MeasuringPeriod string                   `json:"measuring_period"`
-	Readings        []client.IntervalReading  `json:"readings"`
+	Readings        []client.IntervalReading `json:"readings"`
 	Count           int                      `json:"count"`
 }
 
@@ -41,7 +42,7 @@ type LoadCurveResult struct {
 	EndDate         string                   `json:"end_date"`
 	Unit            string                   `json:"unit"`
 	MeasuringPeriod string                   `json:"measuring_period"`
-	Readings        []client.IntervalReading  `json:"readings"`
+	Readings        []client.IntervalReading `json:"readings"`
 	Count           int                      `json:"count"`
 }
 
@@ -52,7 +53,7 @@ type MaxPowerResult struct {
 	EndDate         string                   `json:"end_date"`
 	Unit            string                   `json:"unit"`
 	MeasuringPeriod string                   `json:"measuring_period"`
-	Readings        []client.IntervalReading  `json:"readings"`
+	Readings        []client.IntervalReading `json:"readings"`
 	Count           int                      `json:"count"`
 }
 
@@ -63,7 +64,7 @@ type DailyProductionResult struct {
 	EndDate         string                   `json:"end_date"`
 	Unit            string                   `json:"unit"`
 	MeasuringPeriod string                   `json:"measuring_period"`
-	Readings        []client.IntervalReading  `json:"readings"`
+	Readings        []client.IntervalReading `json:"readings"`
 	Count           int                      `json:"count"`
 }
 
@@ -74,22 +75,22 @@ type ProductionLoadCurveResult struct {
 	EndDate         string                   `json:"end_date"`
 	Unit            string                   `json:"unit"`
 	MeasuringPeriod string                   `json:"measuring_period"`
-	Readings        []client.IntervalReading  `json:"readings"`
+	Readings        []client.IntervalReading `json:"readings"`
 	Count           int                      `json:"count"`
 }
 
 // SummaryResult contains aggregated statistics over a date range.
 type SummaryResult struct {
-	PRM          string  `json:"prm"`
-	StartDate    string  `json:"start_date"`
-	EndDate      string  `json:"end_date"`
-	Unit         string  `json:"unit"`
-	TotalWh      float64 `json:"total_wh"`
-	TotalKWh     float64 `json:"total_kwh"`
+	PRM           string  `json:"prm"`
+	StartDate     string  `json:"start_date"`
+	EndDate       string  `json:"end_date"`
+	Unit          string  `json:"unit"`
+	TotalWh       float64 `json:"total_wh"`
+	TotalKWh      float64 `json:"total_kwh"`
 	AveragePerDay float64 `json:"average_per_day_wh"`
-	PeakDay      string  `json:"peak_day"`
-	PeakValue    float64 `json:"peak_value_wh"`
-	ReadingCount int     `json:"reading_count"`
+	PeakDay       string  `json:"peak_day"`
+	PeakValue     float64 `json:"peak_value_wh"`
+	ReadingCount  int     `json:"reading_count"`
 }
 
 // HealthResult contains the API health check result.

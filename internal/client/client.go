@@ -1,3 +1,4 @@
+// Package client provides a typed HTTP client for the Conso API with retry and backoff.
 package client
 
 import (
@@ -30,7 +31,7 @@ type Client struct {
 
 // ConsumptionResponse is the standard response envelope from the Conso API.
 type ConsumptionResponse struct {
-	ReadingType     ReadingType      `json:"reading_type"`
+	ReadingType     ReadingType       `json:"reading_type"`
 	IntervalReading []IntervalReading `json:"interval_reading"`
 }
 
@@ -137,7 +138,7 @@ func (c *Client) Ping(ctx context.Context) error {
 	if err != nil {
 		return fmt.Errorf("API unreachable: %w", err)
 	}
-	defer resp.Body.Close()
+	defer func() { _ = resp.Body.Close() }()
 	return nil
 }
 
@@ -178,7 +179,7 @@ func (c *Client) doRequest(ctx context.Context, rawURL string) (*ConsumptionResp
 	if err != nil {
 		return nil, fmt.Errorf("executing request: %w", err)
 	}
-	defer resp.Body.Close()
+	defer func() { _ = resp.Body.Close() }()
 
 	body, err := io.ReadAll(io.LimitReader(resp.Body, 1<<20)) // 1 MB cap
 	if err != nil {

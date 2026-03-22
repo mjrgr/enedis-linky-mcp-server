@@ -61,7 +61,7 @@ func TestGetData_Success(t *testing.T) {
 
 func TestGetData_ClientError_NoRetry(t *testing.T) {
 	callCount := 0
-	srv := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+	srv := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, _ *http.Request) {
 		callCount++
 		http.Error(w, `{"error":"bad_request"}`, http.StatusBadRequest)
 	}))
@@ -80,7 +80,7 @@ func TestGetData_ClientError_NoRetry(t *testing.T) {
 
 func TestGetData_ServerError_Retries(t *testing.T) {
 	callCount := 0
-	srv := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+	srv := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, _ *http.Request) {
 		callCount++
 		// Return 500 on first 2 calls, success on 3rd.
 		if callCount < 3 {

@@ -1,3 +1,4 @@
+// Package main is the entrypoint for the enedis-linky-mcp-server.
 package main
 
 import (

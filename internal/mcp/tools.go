@@ -257,7 +257,7 @@ func (s *Server) registerHealthCheck() {
 		),
 	)
 
-	s.mcp.AddTool(tool, func(ctx context.Context, req mcp.CallToolRequest) (*mcp.CallToolResult, error) {
+	s.mcp.AddTool(tool, func(ctx context.Context, _ mcp.CallToolRequest) (*mcp.CallToolResult, error) {
 		result := s.service.HealthCheck(ctx)
 		return toolJSON(result)
 	})
@@ -298,4 +298,3 @@ func toolJSON(v any) (*mcp.CallToolResult, error) {
 func toolError(err error) *mcp.CallToolResult {
 	return mcp.NewToolResultError(err.Error())
 }
-

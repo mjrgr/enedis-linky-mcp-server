@@ -2,13 +2,12 @@ package config
 
 import (
 	"log/slog"
-	"os"
 	"testing"
 )
 
 func TestLoad(t *testing.T) {
 	t.Run("missing token returns error", func(t *testing.T) {
-		os.Unsetenv("CONSO_API_TOKEN")
+		t.Setenv("CONSO_API_TOKEN", "")
 		_, err := Load()
 		if err == nil {
 			t.Fatal("expected error when CONSO_API_TOKEN is missing")
@@ -16,8 +15,7 @@ func TestLoad(t *testing.T) {
 	})
 
 	t.Run("valid minimal config", func(t *testing.T) {
-		os.Setenv("CONSO_API_TOKEN", "test-token")
-		defer os.Unsetenv("CONSO_API_TOKEN")
+		t.Setenv("CONSO_API_TOKEN", "test-token")
 
 		cfg, err := Load()
 		if err != nil {
@@ -38,10 +36,8 @@ func TestLoad(t *testing.T) {
 	})
 
 	t.Run("custom port", func(t *testing.T) {
-		os.Setenv("CONSO_API_TOKEN", "tok")
-		os.Setenv("PORT", "9090")
-		defer os.Unsetenv("CONSO_API_TOKEN")
-		defer os.Unsetenv("PORT")
+		t.Setenv("CONSO_API_TOKEN", "tok")
+		t.Setenv("PORT", "9090")
 
 		cfg, err := Load()
 		if err != nil {
@@ -53,10 +49,8 @@ func TestLoad(t *testing.T) {
 	})
 
 	t.Run("invalid port returns error", func(t *testing.T) {
-		os.Setenv("CONSO_API_TOKEN", "tok")
-		os.Setenv("PORT", "not-a-number")
-		defer os.Unsetenv("CONSO_API_TOKEN")
-		defer os.Unsetenv("PORT")
+		t.Setenv("CONSO_API_TOKEN", "tok")
+		t.Setenv("PORT", "not-a-number")
 
 		_, err := Load()
 		if err == nil {
@@ -65,10 +59,8 @@ func TestLoad(t *testing.T) {
 	})
 
 	t.Run("debug log level", func(t *testing.T) {
-		os.Setenv("CONSO_API_TOKEN", "tok")
-		os.Setenv("LOG_LEVEL", "debug")
-		defer os.Unsetenv("CONSO_API_TOKEN")
-		defer os.Unsetenv("LOG_LEVEL")
+		t.Setenv("CONSO_API_TOKEN", "tok")
+		t.Setenv("LOG_LEVEL", "debug")
 
 		cfg, err := Load()
 		if err != nil {
@@ -80,10 +72,8 @@ func TestLoad(t *testing.T) {
 	})
 
 	t.Run("sse transport", func(t *testing.T) {
-		os.Setenv("CONSO_API_TOKEN", "tok")
-		os.Setenv("MCP_TRANSPORT", "sse")
-		defer os.Unsetenv("CONSO_API_TOKEN")
-		defer os.Unsetenv("MCP_TRANSPORT")
+		t.Setenv("CONSO_API_TOKEN", "tok")
+		t.Setenv("MCP_TRANSPORT", "sse")
 
 		cfg, err := Load()
 		if err != nil {

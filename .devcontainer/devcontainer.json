@@ -1,0 +1,109 @@
+{
+  "name": "Enedis Linky MCP Server",
+  "image": "mcr.microsoft.com/devcontainers/go:1.26",
+  "runArgs": [
+    "--privileged",
+    "--security-opt=label=disable"
+  ],
+  "containerUser": "vscode",
+  "features": {
+    "ghcr.io/devcontainers/features/common-utils:2": {
+      "configureZshAsDefaultShell": true,
+      "upgradePackages": true
+    },
+    "ghcr.io/guiyomh/features/vim:0": {},
+    "ghcr.io/guiyomh/features/golangci-lint:0": {}
+  },
+  "overrideFeatureInstallOrder": [
+    "ghcr.io/devcontainers/features/common-utils:2"
+  ],
+  "initializeCommand": ".devcontainer/initialize.sh ${devcontainerId}",
+  "containerEnv": {
+    "CONTAINER_WORKSPACE_FOLDER": "${containerWorkspaceFolder}",
+    "DEVCONTAINER_ID": "${devcontainerId}",
+    "LOCAL_WORKSPACE_FOLDER": "${localWorkspaceFolder}"
+  },
+  "mounts": [
+    {
+      "type": "bind",
+      "source": "${localEnv:HOME}/.claude",
+      "target": "/home/vscode/.claude"
+    },
+    {
+      "type": "bind",
+      "source": "${localEnv:HOME}/.ssh",
+      "target": "/home/vscode/.ssh"
+    },
+    {
+      "type": "bind",
+      "source": "${localEnv:HOME}/.zsh_history",
+      "target": "/home/vscode/.zsh_history"
+    },
+    {
+      "type": "bind",
+      "source": "${localEnv:HOME}/.gitconfig",
+      "target": "/home/vscode/.gitconfig"
+    },
+    {
+      "type": "bind",
+      "source": "${localEnv:HOME}/.zshrc",
+      "target": "/home/vscode/.zshrc"
+    },
+    {
+      "type": "bind",
+      "source": "${localEnv:HOME}",
+      "target": "/home/vscode/host-home"
+    }
+  ],
+  "onCreateCommand": "echo",
+  "customizations": {
+    "vscode": {
+      "extensions": [
+        "golang.go",
+        "golangci-lint.vscode-golangci-lint",
+        "ms-azuretools.vscode-containers",
+        "ms-vscode.makefile-tools",
+        "redhat.vscode-yaml",
+        "streetsidesoftware.code-spell-checker",
+        "anthropic.claude-code",
+        "bierner.markdown-mermaid",
+        "george-alisson.html-preview-vscode",
+        "DavidAnson.vscode-markdownlint",
+        "timonwong.shellcheck",
+        "mads-hartmann.bash-ide-vscode",
+        "DavidAnson.vscode-markdownlint",
+        "yzhang.markdown-all-in-one",
+        "eamodio.gitlens",
+        "mhutchie.git-graph",
+        "usernamehw.errorlens"
+      ],
+      "settings": {
+        "dev.containers.dockerPath": "podman",
+        "go.lintTool": "golangci-lint",
+        "go.lintFlags": [
+          "--fast"
+        ],
+        "go.useLanguageServer": true,
+        "editor.formatOnSave": true,
+        "editor.defaultFormatter": "golang.go",
+        "[go]": {
+          "editor.codeActionsOnSave": {
+            "source.organizeImports": "always"
+          }
+        }
+      }
+    }
+  },
+  "forwardPorts": [
+    8080,
+    8081,
+    8082
+  ],
+  "postCreateCommand": ".devcontainer/postCreate.sh",
+  "remoteEnv": {
+    "APS_APP_ID": "${localEnv:APS_APP_ID}",
+    "APS_APP_SECRET": "${localEnv:APS_APP_SECRET}",
+    "APS_DASHBOARD": "true",
+    "APS_LOG_LEVEL": "debug"
+  }
+}

@@ -1,0 +1,509 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Linky Dashboard</title>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4/dist/chart.umd.min.js"></script>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --bg:        #0d1117;
+      --surface:   #161b22;
+      --border:    #30363d;
+      --text:      #e6edf3;
+      --muted:     #8b949e;
+      --accent:    #58a6ff;
+      --green:     #3fb950;
+      --red:       #f85149;
+      --orange:    #ffa657;
+      --radius:    8px;
+    }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", system-ui, sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      min-height: 100vh;
+      line-height: 1.5;
+    }
+
+    /* ── Header ── */
+    header {
+      position: sticky; top: 0; z-index: 10;
+      background: color-mix(in srgb, var(--surface) 90%, transparent);
+      backdrop-filter: blur(8px);
+      border-bottom: 1px solid var(--border);
+      padding: 0 1.5rem;
+      display: flex; align-items: center; gap: 1rem;
+      height: 56px;
+    }
+    header h1 { font-size: 1.1rem; font-weight: 600; display: flex; align-items: center; gap: .5rem; }
+    .badge {
+      font-size: .7rem; font-weight: 500; padding: .15rem .5rem;
+      border-radius: 20px; border: 1px solid var(--border);
+      color: var(--muted); background: var(--surface);
+    }
+    .dot {
+      width: 8px; height: 8px; border-radius: 50%;
+      background: var(--muted); flex-shrink: 0;
+      transition: background .3s;
+    }
+    .dot.ok  { background: var(--green); box-shadow: 0 0 6px var(--green); }
+    .dot.err { background: var(--red);   box-shadow: 0 0 6px var(--red); }
+
+    /* ── Layout ── */
+    main { max-width: 1100px; margin: 0 auto; padding: 2rem 1.5rem; }
+
+    section + section { margin-top: 2rem; }
+
+    h2 { font-size: .8rem; font-weight: 600; text-transform: uppercase;
+         letter-spacing: .06em; color: var(--muted); margin-bottom: 1rem; }
+
+    /* ── Status cards ── */
+    .status-grid {
+      display: grid; grid-template-columns: 1fr 1fr; gap: 1rem;
+    }
+    @media (max-width: 600px) { .status-grid { grid-template-columns: 1fr; } }
+
+    .card {
+      background: var(--surface); border: 1px solid var(--border);
+      border-radius: var(--radius); padding: 1.25rem 1.5rem;
+    }
+    .card-title { font-size: .75rem; color: var(--muted); margin-bottom: .5rem; }
+    .card-value { font-size: 1.5rem; font-weight: 700; }
+    .card-sub   { font-size: .8rem; color: var(--muted); margin-top: .25rem; }
+
+    .status-card { display: flex; align-items: flex-start; gap: 1rem; }
+    .status-card .dot { margin-top: .4rem; }
+    .status-card .info .label { font-weight: 600; font-size: .95rem; }
+    .status-card .info .msg   { font-size: .8rem; color: var(--muted); margin-top: .2rem; }
+
+    /* ── Query form ── */
+    .form-row {
+      display: flex; flex-wrap: wrap; gap: .75rem; align-items: flex-end;
+    }
+    .field { display: flex; flex-direction: column; gap: .35rem; }
+    .field label { font-size: .75rem; color: var(--muted); }
+    .field input {
+      background: var(--surface); border: 1px solid var(--border);
+      border-radius: var(--radius); color: var(--text);
+      padding: .5rem .75rem; font-size: .9rem; width: 100%;
+      outline: none; transition: border-color .2s;
+    }
+    .field input:focus { border-color: var(--accent); }
+    .field.wide input { min-width: 180px; }
+
+    .btn {
+      padding: .5rem 1.1rem; border-radius: var(--radius);
+      border: 1px solid var(--border); background: var(--surface);
+      color: var(--text); font-size: .9rem; cursor: pointer;
+      transition: border-color .2s, background .2s;
+      white-space: nowrap;
+    }
+    .btn:hover  { border-color: var(--accent); background: color-mix(in srgb, var(--accent) 10%, var(--surface)); }
+    .btn.primary { background: var(--accent); color: #0d1117; border-color: var(--accent); font-weight: 600; }
+    .btn.primary:hover { filter: brightness(1.1); }
+    .btn:disabled { opacity: .5; cursor: not-allowed; }
+
+    /* ── Stats grid ── */
+    .stats-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+      gap: 1rem;
+    }
+    .stat-card { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); padding: 1.25rem; }
+    .stat-label { font-size: .75rem; color: var(--muted); margin-bottom: .4rem; }
+    .stat-value { font-size: 1.6rem; font-weight: 700; color: var(--accent); }
+    .stat-unit  { font-size: .75rem; color: var(--muted); margin-top: .15rem; }
+
+    /* ── Tabs ── */
+    .tabs { display: flex; gap: .25rem; margin-bottom: 1.25rem; border-bottom: 1px solid var(--border); padding-bottom: 0; }
+    .tab {
+      padding: .5rem 1rem; font-size: .85rem; cursor: pointer;
+      border: none; background: transparent; color: var(--muted);
+      border-bottom: 2px solid transparent; margin-bottom: -1px;
+      transition: color .2s, border-color .2s;
+    }
+    .tab:hover  { color: var(--text); }
+    .tab.active { color: var(--accent); border-bottom-color: var(--accent); font-weight: 600; }
+
+    /* ── Chart ── */
+    .chart-wrap {
+      background: var(--surface); border: 1px solid var(--border);
+      border-radius: var(--radius); padding: 1.5rem;
+      position: relative; min-height: 320px;
+    }
+    .chart-wrap canvas { max-height: 320px; }
+
+    /* ── Error / Empty states ── */
+    .notice {
+      padding: 1rem 1.25rem; border-radius: var(--radius);
+      font-size: .85rem; display: none;
+    }
+    .notice.error { background: color-mix(in srgb, var(--red) 12%, var(--surface));
+                    border: 1px solid color-mix(in srgb, var(--red) 40%, transparent);
+                    color: var(--red); }
+    .notice.info  { background: color-mix(in srgb, var(--accent) 10%, var(--surface));
+                    border: 1px solid color-mix(in srgb, var(--accent) 30%, transparent);
+                    color: var(--accent); }
+
+    /* ── Hidden ── */
+    .hidden { display: none !important; }
+
+    /* ── Spinner ── */
+    @keyframes spin { to { transform: rotate(360deg); } }
+    .spinner {
+      width: 20px; height: 20px; border: 2px solid var(--border);
+      border-top-color: var(--accent); border-radius: 50%;
+      animation: spin .6s linear infinite; display: inline-block;
+    }
+  </style>
+</head>
+<body>
+
+<header>
+  <h1>⚡ Linky Dashboard</h1>
+  <span class="badge">MCP Server</span>
+  <span class="badge">Conso API</span>
+  <div style="margin-left:auto;display:flex;align-items:center;gap:.5rem;">
+    <div class="dot" id="headerDot"></div>
+    <span style="font-size:.8rem;color:var(--muted)" id="headerStatus">checking…</span>
+  </div>
+</header>
+
+<main>
+
+  <!-- ── Connection status ── -->
+  <section>
+    <h2>Connection Status</h2>
+    <div class="status-grid">
+      <div class="card status-card">
+        <div class="dot ok" id="mcpDot"></div>
+        <div class="info">
+          <div class="label">MCP Server</div>
+          <div class="msg" id="mcpMsg">Running — page loaded successfully</div>
+        </div>
+      </div>
+      <div class="card status-card">
+        <div class="dot" id="apiDot"></div>
+        <div class="info">
+          <div class="label">Conso API</div>
+          <div class="msg" id="apiMsg">Checking…</div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ── Query form ── -->
+  <section>
+    <h2>Query Parameters</h2>
+    <div class="form-row">
+      <div class="field wide">
+        <label for="prm">PRM (14-digit meter ID)</label>
+        <input id="prm" type="text" placeholder="12345678901234" maxlength="14" />
+      </div>
+      <div class="field">
+        <label for="startDate">Start date</label>
+        <input id="startDate" type="date" />
+      </div>
+      <div class="field">
+        <label for="endDate">End date</label>
+        <input id="endDate" type="date" />
+      </div>
+      <button class="btn primary" id="fetchBtn" onclick="fetchAll()">Fetch Data</button>
+      <button class="btn" onclick="checkHealth()">Re-check API</button>
+    </div>
+    <div class="notice error" id="formError" style="margin-top:.75rem;"></div>
+  </section>
+
+  <!-- ── Stats ── -->
+  <section id="statsSection" class="hidden">
+    <h2>Summary</h2>
+    <div class="stats-grid">
+      <div class="stat-card">
+        <div class="stat-label">Total Consumption</div>
+        <div class="stat-value" id="statTotal">—</div>
+        <div class="stat-unit">kWh</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-label">Daily Average</div>
+        <div class="stat-value" id="statAvg">—</div>
+        <div class="stat-unit">Wh / day</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-label">Peak Day</div>
+        <div class="stat-value" id="statPeakVal">—</div>
+        <div class="stat-unit" id="statPeakDay">—</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-label">Readings</div>
+        <div class="stat-value" id="statCount">—</div>
+        <div class="stat-unit">data points</div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ── Charts ── -->
+  <section id="chartsSection" class="hidden">
+    <h2>Data</h2>
+    <div class="tabs">
+      <button class="tab active" onclick="switchTab(this, 'consumption')">Daily Consumption</button>
+      <button class="tab" onclick="switchTab(this, 'loadcurve')">Load Curve</button>
+      <button class="tab" onclick="switchTab(this, 'maxpower')">Max Power</button>
+    </div>
+    <div class="chart-wrap">
+      <div id="chartSpinner" class="hidden" style="position:absolute;top:50%;left:50%;transform:translate(-50%,-50%)">
+        <div class="spinner"></div>
+      </div>
+      <div id="chartError" class="notice hidden" style="position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);text-align:center;white-space:nowrap;z-index:5;"></div>
+      <canvas id="mainChart"></canvas>
+    </div>
+  </section>
+
+</main>
+
+<script>
+  // ── State ──────────────────────────────────────────────────────────────────
+  let chart = null;
+  let activeTab = 'consumption';
+  let cachedPRM = '';
+  let cachedStart = '';
+  let cachedEnd = '';
+
+  // ── Date helpers ───────────────────────────────────────────────────────────
+  // Parse date strings directly to avoid timezone-offset issues with new Date().
+  // Handles both "YYYY-MM-DD" and "YYYY-MM-DDTHH:MM:SS+HH:MM" inputs.
+  function fmtDateStr(s) {
+    if (!s || s.length < 10) return s || '';
+    const [year, month, day] = s.slice(0, 10).split('-');
+    if (s.length > 10) {
+      const time = s.slice(11, 16); // "HH:MM"
+      return `${day}/${month}/${year} ${time}`;
+    }
+    return `${day}/${month}/${year}`;
+  }
+
+  // ── Init ───────────────────────────────────────────────────────────────────
+  (async function init() {
+    const today = new Date();
+    const prior = new Date(today);
+    prior.setDate(prior.getDate() - 7);
+    document.getElementById('endDate').value   = fmt(today);
+    document.getElementById('startDate').value = fmt(prior);
+    checkHealth();
+    try {
+      const res = await fetch('/api/config');
+      if (res.ok) {
+        const cfg = await res.json();
+        if (cfg.prm) document.getElementById('prm').value = cfg.prm;
+      }
+    } catch (_) {}
+  })();
+
+  function fmt(d) {
+    return d.toISOString().slice(0, 10);
+  }
+
+  // ── Health check ───────────────────────────────────────────────────────────
+  async function checkHealth() {
+    const dot = document.getElementById('apiDot');
+    const msg = document.getElementById('apiMsg');
+    const hDot = document.getElementById('headerDot');
+    const hStatus = document.getElementById('headerStatus');
+    dot.className = 'dot';
+    msg.textContent = 'Checking…';
+
+    try {
+      const res = await fetch('/api/health');
+      const data = await res.json();
+      if (data.status === 'healthy') {
+        dot.className = 'dot ok';
+        hDot.className = 'dot ok';
+        msg.textContent = data.message || 'Conso API is reachable';
+        hStatus.textContent = 'API healthy';
+      } else {
+        dot.className = 'dot err';
+        hDot.className = 'dot err';
+        msg.textContent = data.message || 'Conso API unreachable';
+        hStatus.textContent = 'API unhealthy';
+      }
+    } catch (e) {
+      dot.className = 'dot err';
+      hDot.className = 'dot err';
+      msg.textContent = 'Could not reach dashboard API';
+      hStatus.textContent = 'Connection error';
+    }
+  }
+
+  // ── Fetch all data ─────────────────────────────────────────────────────────
+  async function fetchAll() {
+    const prm   = document.getElementById('prm').value.trim();
+    const start = document.getElementById('startDate').value;
+    const end   = document.getElementById('endDate').value;
+    const errEl = document.getElementById('formError');
+
+    errEl.style.display = 'none';
+
+    if (!prm)   { showFormError('PRM is required.'); return; }
+    if (!start) { showFormError('Start date is required.'); return; }
+    if (!end)   { showFormError('End date is required.'); return; }
+    if (start > end) { showFormError('Start date must be before end date.'); return; }
+
+    cachedPRM   = prm;
+    cachedStart = start;
+    cachedEnd   = end;
+
+    const btn = document.getElementById('fetchBtn');
+    btn.disabled = true;
+    btn.textContent = 'Loading…';
+
+    try {
+      await Promise.all([fetchSummary(prm, start, end), loadTab(activeTab)]);
+      document.getElementById('statsSection').classList.remove('hidden');
+      document.getElementById('chartsSection').classList.remove('hidden');
+    } finally {
+      btn.disabled = false;
+      btn.textContent = 'Fetch Data';
+    }
+  }
+
+  function showFormError(msg) {
+    const el = document.getElementById('formError');
+    el.textContent = msg;
+    el.style.display = 'block';
+  }
+
+  // ── Summary ────────────────────────────────────────────────────────────────
+  async function fetchSummary(prm, start, end) {
+    const res  = await fetch(`/api/summary?prm=${prm}&start=${start}&end=${end}`);
+    const data = await res.json();
+    if (!res.ok) { showFormError(data.error || 'Failed to fetch summary.'); return; }
+    document.getElementById('statTotal').textContent    = data.total_kwh ?? '—';
+    document.getElementById('statAvg').textContent      = data.average_per_day_wh != null ? Math.round(data.average_per_day_wh) : '—';
+    document.getElementById('statPeakVal').textContent  = data.peak_value_wh != null ? Math.round(data.peak_value_wh) : '—';
+    document.getElementById('statPeakDay').textContent  = data.peak_day ? fmtDateStr(data.peak_day) : '—';
+    document.getElementById('statCount').textContent    = data.reading_count ?? '—';
+  }
+
+  // ── Chart notice helper ────────────────────────────────────────────────────
+  function showChartNotice(el, type, msg) {
+    el.textContent = msg;
+    el.className = 'notice ' + type;
+    el.style.removeProperty('display');
+  }
+
+  // ── Tabs ───────────────────────────────────────────────────────────────────
+
+  function switchTab(el, tab) {
+    document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+    el.classList.add('active');
+    activeTab = tab;
+    const errEl = document.getElementById('chartError');
+    if (!cachedPRM) {
+      showChartNotice(errEl, 'info', 'Please fetch data first.');
+      if (chart) { chart.destroy(); chart = null; }
+      return;
+    }
+    loadTab(tab);
+  }
+
+  async function loadTab(tab) {
+    const endpoints = {
+      consumption: '/api/consumption',
+      loadcurve:   '/api/load-curve',
+      maxpower:    '/api/max-power',
+    };
+    const labels = {
+      consumption: { title: 'Daily Consumption (Wh)', color: 'rgba(88,166,255,0.75)', border: '#58a6ff', type: 'bar' },
+      loadcurve:   { title: 'Load Curve (W)',          color: 'rgba(63,185,80,0.6)',   border: '#3fb950', type: 'line' },
+      maxpower:    { title: 'Max Power (VA)',           color: 'rgba(255,166,87,0.75)', border: '#ffa657', type: 'bar' },
+    };
+
+    const errEl = document.getElementById('chartError');
+    const spinner = document.getElementById('chartSpinner');
+    errEl.classList.add('hidden');
+    spinner.classList.remove('hidden');
+
+    try {
+      const url = `${endpoints[tab]}?prm=${cachedPRM}&start=${cachedStart}&end=${cachedEnd}`;
+      const res  = await fetch(url);
+      const data = await res.json();
+
+      if (!res.ok) {
+        showChartNotice(errEl, 'error', data.error || 'API error');
+        if (chart) { chart.destroy(); chart = null; }
+        return;
+      }
+
+      const readings = data.readings || [];
+      if (readings.length === 0) {
+        showChartNotice(errEl, 'info', 'No data available for this date range.');
+        if (chart) { chart.destroy(); chart = null; }
+        return;
+      }
+
+      errEl.classList.add('hidden');
+      const xLabels = readings.map(r => fmtDateStr(r.date) || r.date);
+      const values  = readings.map(r => parseFloat(r.value) || 0);
+      renderChart(xLabels, values, labels[tab]);
+    } catch (e) {
+      showChartNotice(errEl, 'error', 'Network error: ' + e.message);
+      if (chart) { chart.destroy(); chart = null; }
+    } finally {
+      spinner.classList.add('hidden');
+    }
+  }
+
+  // ── Chart ──────────────────────────────────────────────────────────────────
+  function renderChart(labels, values, meta) {
+    const ctx = document.getElementById('mainChart').getContext('2d');
+    if (chart) chart.destroy();
+
+    chart = new Chart(ctx, {
+      type: meta.type,
+      data: {
+        labels,
+        datasets: [{
+          label: meta.title,
+          data: values,
+          backgroundColor: meta.color,
+          borderColor: meta.border,
+          borderWidth: meta.type === 'line' ? 2 : 1,
+          pointRadius: meta.type === 'line' ? (labels.length > 48 ? 0 : 3) : undefined,
+          tension: 0.3,
+          fill: meta.type === 'line',
+        }]
+      },
+      options: {
+        responsive: true,
+        maintainAspectRatio: true,
+        interaction: { mode: 'index', intersect: false },
+        plugins: {
+          legend: { display: false },
+          tooltip: {
+            backgroundColor: '#1c2128',
+            borderColor: '#30363d',
+            borderWidth: 1,
+            titleColor: '#e6edf3',
+            bodyColor: '#8b949e',
+          }
+        },
+        scales: {
+          x: {
+            ticks: { color: '#8b949e', font: { size: 11 } },
+            grid: { color: '#21262d' },
+          },
+          y: {
+            ticks: { color: '#8b949e', font: { size: 11 } },
+            grid: { color: '#21262d' },
+            beginAtZero: true,
+          }
+        }
+      }
+    });
+  }
+</script>
+</body>
+</html>

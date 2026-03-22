@@ -1,0 +1,17 @@
+# MD013/line-length : Line length : https://github.com/DavidAnson/markdownlint/blob/v0.37.4/doc/md013.md
+MD013:
+  # Number of characters
+  line_length: 150
+  # Number of characters for headings
+  heading_line_length: 150
+  # Number of characters for code blocks
+  code_block_line_length: 150
+  # Skip tables
+  tables: false
+
+# MD060/table-style : Table style : https://github.com/DavidAnson/markdownlint/blob/v0.40.0/doc/md060.md
+MD060:
+  # Style of table columns
+  style: compact
+
+MD012: false

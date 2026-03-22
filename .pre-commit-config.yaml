@@ -1,0 +1,89 @@
+default_install_hook_types:
+  - commit-msg
+  - pre-commit
+default_stages:
+  - pre-commit
+exclude: '^(docs/|/|vendor/|\.env\..*)'
+repos:
+  - repo: https://github.com/pre-commit/pre-commit-hooks
+    rev: v6.0.0
+    hooks:
+      - id: check-added-large-files
+      - id: check-ast
+      - id: check-builtin-literals
+      - id: check-case-conflict
+      - id: check-docstring-first
+      - id: check-executables-have-shebangs
+      - id: check-illegal-windows-names
+      - id: check-json
+        exclude: .devcontainer/devcontainer.json
+      - id: check-shebang-scripts-are-executable
+      - id: pretty-format-json
+        exclude: .devcontainer/devcontainer.json|.devcontainer/devcontainer-lock.json
+        args:
+          - --no-sort-keys
+      - id: check-merge-conflict
+      - id: check-symlinks
+      - id: check-toml
+        exclude: roles/gitlab_runner/templates/config.toml
+      - id: check-vcs-permalinks
+      - id: check-xml
+      - id: check-yaml
+        exclude: .gitlab-ci.yml|.gitlab/opentofu.yml
+      - id: debug-statements
+      - id: destroyed-symlinks
+      # No AWS keys were found in the configured credential files and environment variables.
+      # - id: detect-aws-credentials
+      - id: detect-private-key
+      # Managed by ruff
+      # - id: double-quote-string-fixer
+      - id: end-of-file-fixer
+        exclude: .devcontainer/devcontainer-lock.json
+      - id: file-contents-sorter
+      - id: fix-byte-order-marker
+      # https://docs.astral.sh/ruff/rules/utf8-encoding-declaration/
+      # - id: fix-encoding-pragma
+      - id: forbid-new-submodules
+      - id: forbid-submodules
+      - id: mixed-line-ending
+      - id: name-tests-test
+      - id: no-commit-to-branch
+        # non ascii chars in branches break morpheus
+        args: [--pattern, "(?i).*[^\\w/-]+"]
+      - id: requirements-txt-fixer
+      - id: sort-simple-yaml
+      - id: trailing-whitespace
+  - repo: https://github.com/astral-sh/ruff-pre-commit
+    rev: v0.15.1
+    hooks:
+      - id: ruff-check
+      - id: ruff-format
+  - repo: https://github.com/koalaman/shellcheck-precommit
+    rev: v0.11.0
+    hooks:
+      - id: shellcheck
+  - repo: https://github.com/scop/pre-commit-shfmt
+    rev: v3.12.0-2
+    hooks:
+      - id: shfmt-docker
+  - repo: https://github.com/commitizen-tools/commitizen
+    rev: v4.13.7
+    hooks:
+      - id: commitizen
+        additional_dependencies: [cz-custom-conventional-commits]
+  - repo: local
+    hooks:
+      - id: markdownlint-cli2-docker
+        name: markdownlint-cli2-docker
+        description: "Checks the style of Markdown/CommonMark files."
+        entry: davidanson/markdownlint-cli2:v0.21.0
+        language: docker_image
+        types: [markdown]
+        # https://github.com/DavidAnson/markdownlint-cli2/issues/301
+        require_serial: true
+  - repo: https://github.com/antonbabenko/pre-commit-terraform
+    rev: v1.105.0
+    hooks:
+      - id: terraform_fmt
+      - id: terraform_tflint
+      - id: terraform_docs
